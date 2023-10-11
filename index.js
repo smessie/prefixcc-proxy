@@ -9,11 +9,6 @@ app.use('/', createProxyMiddleware({
     changeOrigin: true,
     selfHandleResponse: true,
     onProxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, res) => {
-        let response = responseBuffer.toString('utf8');
-        if (process.env.HOSTNAME) {
-            response = response.replaceAll('http://prefix.cc/', `https://${process.env.HOSTNAME}/`);
-        }
-
         // Manually perform hostRewrite and protocolRewrite
         if (proxyRes.headers['location']) {
             const u = url.parse(proxyRes.headers['location']);
@@ -28,6 +23,14 @@ app.use('/', createProxyMiddleware({
             res.setHeader('location', u.format());
         }
 
+        // Check if the response is HTML and should be transformed
+        if (!proxyRes.headers['content-type'] || !proxyRes.headers['content-type'].includes('text/html')) {
+            return responseBuffer;
+        }
+        let response = responseBuffer.toString('utf8');
+        if (process.env.HOSTNAME) {
+            response = response.replaceAll('http://prefix.cc/', `https://${process.env.HOSTNAME}/`);
+        }
         return response;
     })
 }));
