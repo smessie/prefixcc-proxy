@@ -1,8 +1,11 @@
 const express = require('express');
 const {createProxyMiddleware, responseInterceptor} = require('http-proxy-middleware');
 const url = require('url');
+const cors = require('cors');
 
 const app = express();
+
+app.use(cors());
 
 app.use('/', createProxyMiddleware({
     target: 'http://prefix.cc',
